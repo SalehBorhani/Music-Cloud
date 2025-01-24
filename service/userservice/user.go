@@ -1,9 +1,9 @@
 package userservice
 
 import (
-	"github.com/golang-jwt/jwt"
-	"github.com/yazdanbhd/Music-Cloud/delivery/authjwt"
 	"github.com/yazdanbhd/Music-Cloud/entity"
+	"github.com/yazdanbhd/Music-Cloud/params"
+	"github.com/yazdanbhd/Music-Cloud/service/authservice"
 )
 
 type Repository interface {
@@ -12,36 +12,16 @@ type Repository interface {
 	GetUserID(userName string) (uint, error)
 }
 
-type RegisterRequest struct {
-	PhoneNumber string `json:"phone_number"`
-	Name        string `json:"name"`
-	UserName    string `json:"user_name"`
-	Password    string `json:"password"`
-}
-
-type RegisterResponse struct {
-	UserName string `json:"user_name"`
-	UserID   uint   `json:"user_id"`
-}
-
-type LoginRequest struct {
-	UserName string `json:"user_name"`
-	Password string `json:"password"`
-}
-
-type LoginResponse struct {
-	AccessToken string `json:"access_token"`
-}
-
 type Service struct {
+	auth authservice.Service
 	repo Repository
 }
 
-func New(r Repository) Service {
-	return Service{repo: r}
+func New(r Repository, auth authservice.Service) Service {
+	return Service{repo: r, auth: auth}
 }
 
-func (s *Service) UserRegister(req RegisterRequest) (RegisterResponse, error) {
+func (s *Service) UserRegister(req params.RegisterRequest) (params.RegisterResponse, error) {
 	// Store the user data to the database
 	user := entity.User{
 		ID:          0,
@@ -52,25 +32,36 @@ func (s *Service) UserRegister(req RegisterRequest) (RegisterResponse, error) {
 	}
 	u, err := s.repo.Register(user)
 	if err != nil {
-		return RegisterResponse{}, err
+		return params.RegisterResponse{}, err
 	}
-	return RegisterResponse{UserID: u.ID, UserName: u.UserName}, nil
+	return params.RegisterResponse{UserID: u.ID, UserName: u.UserName}, nil
 }
 
-func (s *Service) UserLogin(loginReq LoginRequest) (LoginResponse, error) {
+func (s *Service) UserLogin(loginReq params.LoginRequest) (params.LoginResponse, error) {
 	isAuth, err := s.repo.IsAuthenticated(loginReq.UserName, loginReq.Password)
 
 	if err != nil || isAuth == false {
-		return LoginResponse{}, err
+		return params.LoginResponse{}, err
 	}
 
-	token := authjwt.New([]byte(`secret-key`), jwt.SigningMethodHS256)
+	userID, err := s.repo.GetUserID(loginReq.UserName)
+	if err != nil {
+		return params.LoginResponse{}, err
+	}
 
-	tokenString, err := token.CreateToken(loginReq.UserName)
+	accessToken, err := s.auth.CreateAccessToken(userID)
+	if err != nil {
+		return params.LoginResponse{}, err
+	}
+
+	refreshToken, err := s.auth.CreateRefreshToken(userID)
 
 	if err != nil {
-		return LoginResponse{}, err
+		return params.LoginResponse{}, err
 	}
 
-	return LoginResponse{AccessToken: tokenString}, nil
+	return params.LoginResponse{AccessToken: accessToken, RefreshToken: refreshToken, UserInfo: struct {
+		UserID uint `json:"id"`
+	}{UserID: userID}}, nil
+
 }

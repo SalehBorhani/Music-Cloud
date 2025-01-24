@@ -11,3 +11,8 @@ config:
     port: 3306
     host: "localhost"
     db_name: "music_cloud_db"
+
+  auth:
+    sign_key: "secret-key"
+    access_subject: "access"
+    refresh_subject: "refresh"

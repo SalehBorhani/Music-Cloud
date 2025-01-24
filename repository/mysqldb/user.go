@@ -38,10 +38,9 @@ func (d *MySQLDB) IsAuthenticated(userName, password string) (bool, error) {
 
 func (d *MySQLDB) GetUserID(userName string) (uint, error) {
 	var user entity.User
-	var createdAt []uint8
 
 	query := d.db.QueryRow("select id from users where user_name = ?", userName)
-	err := query.Scan(&user.ID, &user.Name, &user.PhoneNumber, &user.Password, &createdAt)
+	err := query.Scan(&user.ID)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/gommon/log"
 	"github.com/yazdanbhd/Music-Cloud/repository/mysqldb"
 	"github.com/yazdanbhd/Music-Cloud/repository/s3/minios3"
+	"github.com/yazdanbhd/Music-Cloud/service/authservice"
 	"strings"
 )
 
@@ -16,8 +17,9 @@ const (
 )
 
 type Config struct {
-	MinioS3  minios3.Config `koanf:"minio"`
-	DataBase mysqldb.Config `koanf:"db"`
+	MinioS3    minios3.Config     `koanf:"minio"`
+	DataBase   mysqldb.Config     `koanf:"db"`
+	AuthConfig authservice.Config `koanf:"auth"`
 }
 
 func New(path string) Config {

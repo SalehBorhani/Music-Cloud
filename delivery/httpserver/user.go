@@ -7,6 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
+	"github.com/yazdanbhd/Music-Cloud/params"
 	"github.com/yazdanbhd/Music-Cloud/repository/mysqldb"
 	"github.com/yazdanbhd/Music-Cloud/service/userservice"
 	"log"
@@ -15,7 +16,7 @@ import (
 )
 
 func (s Server) UserRegister(c echo.Context) error {
-	var req userservice.RegisterRequest
+	var req params.RegisterRequest
 
 	if err := c.Bind(&req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest)
@@ -27,7 +28,7 @@ func (s Server) UserRegister(c echo.Context) error {
 
 	}
 
-	userSvc := userservice.New(db)
+	userSvc := userservice.New(db, s.authSvc)
 
 	response, err := userSvc.UserRegister(req)
 
@@ -40,24 +41,23 @@ func (s Server) UserRegister(c echo.Context) error {
 }
 
 func (s Server) UserLogin(c echo.Context) error {
-	var req userservice.LoginRequest
+	var req params.LoginRequest
 
 	if err := c.Bind(&req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest)
 	}
-
 	db, err := mysqldb.New(s.cfg.DataBase)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 
 	}
 
-	userSvc := userservice.New(db)
+	userSvc := userservice.New(db, s.authSvc)
 
 	response, err := userSvc.UserLogin(req)
 
 	if err != nil {
-		return echo.NewHTTPError(http.StatusUnauthorized)
+		return echo.NewHTTPError(http.StatusUnauthorized, err)
 	}
 	return c.JSON(http.StatusOK, response)
 }

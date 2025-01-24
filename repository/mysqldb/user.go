@@ -8,7 +8,7 @@ import (
 )
 
 func (d *MySQLDB) Register(u entity.User) (entity.User, error) {
-	result, err := d.db.Exec(`insert into users (name, user_name, phone_number, password) values (?, ?, ?, ?)`, u.Name, u.UserName, u.PhoneNumber, u.Password)
+	result, err := d.db.Exec(`insert into users (name, user_name, email, password) values (?, ?, ?, ?)`, u.Name, u.UserName, u.Email, u.Password)
 	if err != nil {
 		return entity.User{}, fmt.Errorf("unexpected error: %w", err)
 	}
@@ -22,7 +22,7 @@ func (d *MySQLDB) IsAuthenticated(userName, password string) (bool, error) {
 	var createdAt []uint8
 
 	query := d.db.QueryRow("select * from users where user_name = ? and password = ?", userName, password)
-	err := query.Scan(&user.ID, &user.Name, &user.UserName, &user.PhoneNumber, &user.Password, &createdAt)
+	err := query.Scan(&user.ID, &user.Name, &user.UserName, &user.Email, &user.Password, &createdAt)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

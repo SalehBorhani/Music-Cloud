@@ -9,6 +9,7 @@ import (
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/yazdanbhd/Music-Cloud/params"
 	"github.com/yazdanbhd/Music-Cloud/repository/mysqldb"
+	"github.com/yazdanbhd/Music-Cloud/service/totpservice"
 	"github.com/yazdanbhd/Music-Cloud/service/userservice"
 	"log"
 	"net/http"
@@ -55,6 +56,10 @@ func (s Server) UserLogin(c echo.Context) error {
 	userSvc := userservice.New(db, s.authSvc)
 
 	response, err := userSvc.UserLogin(req)
+
+	if ok, _ := s.totpSvc.ValidateOTP(totpservice.RandomSecret, req.TOTPCode); !ok {
+		return c.JSON(http.StatusUnauthorized, "totp code is invalid")
+	}
 
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnauthorized, err)

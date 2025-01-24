@@ -1,19 +1,21 @@
 package params
 
 type RegisterRequest struct {
-	PhoneNumber string `json:"phone_number"`
-	Name        string `json:"name"`
-	UserName    string `json:"user_name"`
-	Password    string `json:"password"`
+	Email    string `json:"email"`
+	Name     string `json:"name"`
+	UserName string `json:"user_name"`
+	Password string `json:"password"`
 }
 
 type RegisterResponse struct {
 	UserName string `json:"user_name"`
+	TOTPUri  string `json:"totp_uri"`
 	UserID   uint   `json:"user_id"`
 }
 
 type LoginRequest struct {
 	UserName string `json:"user_name"`
+	TOTPCode string `json:"totp_code"`
 	Password string `json:"password"`
 }
 

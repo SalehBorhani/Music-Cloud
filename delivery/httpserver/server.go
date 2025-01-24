@@ -6,15 +6,17 @@ import (
 	"github.com/yazdanbhd/Music-Cloud/config"
 	"github.com/yazdanbhd/Music-Cloud/delivery/httpserver/middleware"
 	"github.com/yazdanbhd/Music-Cloud/service/authservice"
+	"github.com/yazdanbhd/Music-Cloud/service/totpservice"
 )
 
 type Server struct {
+	totpSvc totpservice.Service
 	authSvc authservice.Service
 	cfg     config.Config
 }
 
-func New(cfg config.Config, authSvc authservice.Service) Server {
-	return Server{cfg: cfg, authSvc: authSvc}
+func New(cfg config.Config, authSvc authservice.Service, totpSvc totpservice.Service) Server {
+	return Server{cfg: cfg, authSvc: authSvc, totpSvc: totpSvc}
 }
 
 func (s Server) Run() {
